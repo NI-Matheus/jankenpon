@@ -5,17 +5,74 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jankenpon</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   </head>
 
   <style>
     html {
       font-family: sans-serif;
     }
-    body {
-      width: 50%;
-      max-width: 800px;
-      min-width: 480px;
-      margin: 0 auto;
+     body {
+      font-family: 'Press Start 2P', cursive;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .game-btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 20px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .game-btn:hover {
+      background-color: #555;
+    }
+
+    .resultParas {
+      margin-top: 30px;
+    }
+
+    #game-results {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #game-results li {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    @keyframes shine {
+      0% { background-color: yellow; }
+      50% { background-color: transparent; }
+      100% { background-color: yellow; }
+  }
+
+    .arcade-machine {
+      font-size: 20px;
+      background-color: #333;
+      padding: 10px;
+      border-radius: 5px;
+      display: inline-block;
+      animation: shine 1s infinite;
     }
   </style>
 
@@ -23,112 +80,109 @@
     <h1>Rock Paper Scissors game</h1>
     <p>Let's see if you can beat me. Click let's play and enter your choice</p>
 
-
-    <button onclick="game()" id="submit">Let's play!</button>
+    <button class="game-btn" data-move="Rock">Rock</button>
+    <button class="game-btn" data-move="Paper">Paper</button>
+    <button class="game-btn" data-move="Scissors">Scissors</button>
 
     <div class="resultParas">
       <ul id="game-results"></ul>
+      <p id="score" class="arcade-machine"></p>
       <p id="final-result"></p>
     </div>
   </body>
   <script>
+    let playerScore = 0;
+    let computerScore = 0;
+    const gameResultsList = document.querySelector("#game-results");
+    const finalResultPara = document.querySelector("#final-result");
+    const roundScorePara = document.querySelector("#score");
+    const buttons = document.querySelectorAll('.game-btn');
+
     function game() {
-      let playerScore = 0;
-      let computerScore = 0;
-      let tieScore = 0;
-      const gameResultsList = document.querySelector("#game-results");
-      const finalResultPara = document.querySelector("#final-result");
       // Clear previous game results
       gameResultsList.innerHTML = "";
       finalResultPara.innerHTML = "";
 
-      for (let roundCounter = 0; roundCounter < 5; roundCounter++ ) {
-        const playerSelection = prompt("Let's play! Rock, Paper or Scissors?").toLowerCase();
-        const computerSelection = getComputerChoice();
-        const roundResult = playRound(playerSelection, computerSelection);
-
-        updateGameResults(gameResultsList, roundCounter, playerSelection, computerSelection, roundResult);
-
-        if (roundResult.startsWith("You Win!")) {
-          playerScore++;
-        } else if (roundResult.startsWith("You Lose!")) {
-          computerScore++;
-        } else if (roundResult.startsWith("It's a Draw!")) {
-          tieScore++;
-        } else if (roundResult.startsWith("Your input")){
-          roundCounter--;
-        }
-      }
-
-      if (playerScore > computerScore) {
-        finalResultPara.innerHTML = `You won the game! Final score: You (${playerScore}) - Computer (${computerScore})`;
-        console.log(finalResultPara);
-      } else if (computerScore > playerScore) {
-        finalResultPara.innerHTML = `You lost the game! Final score: You (${playerScore}) - Computer (${computerScore})`;
-        console.log(finalResultPara);
-      } else {
-        finalResultPara.innerHTML = `It's a tie! Final score: You (${playerScore}) - Computer (${computerScore})`;
-        console.log(finalResultPara);
-      }
+      buttons.forEach(button => {
+        button.addEventListener('click', () => {
+          const playerSelection = button.dataset.move;
+          const computerSelection = getComputerChoice();
+          playRound(playerSelection, computerSelection);
+        });
+      });
     }
 
     function playRound(playerSelection, computerSelection) {
-      playerSelection =
-        playerSelection.charAt(0).toUpperCase() + playerSelection.slice(1);
+      if (playerScore >= 5 || computerScore >= 5) {
+        endGame();
+        return;
+      }
 
+      const roundResult = determineRoundResult(playerSelection, computerSelection);
+      updateGameResults(gameResultsList, playerSelection, computerSelection, roundResult);
+
+      if (roundResult.startsWith("You Win!")) {
+        playerScore++;
+      } else if (roundResult.startsWith("You Lose!")) {
+        computerScore++;
+      }
+
+      roundScorePara.innerText = `- Score: Player(${playerScore}) --- Computer(${computerScore}) -`
+
+      if (playerScore >= 5 || computerScore >= 5) {
+        endGame();
+      }
+    }
+
+    function determineRoundResult(playerSelection, computerSelection) {
       if (playerSelection === computerSelection) {
         return `It's a Draw! ${playerSelection} vs ${computerSelection}`;
       } else {
-        switch (playerSelection) {
-          case "Rock":
-            if (computerSelection === "Scissors") {
-              return `You Win! ${playerSelection} beats ${computerSelection}`;
-            } else {
-              return `You Lose! ${computerSelection} beats ${playerSelection}`;
-            }
-            break;
+        let roundResult = '';
 
-          case "Paper":
-            if (computerSelection === "Rock") {
-              return `You Win! ${playerSelection} beats ${computerSelection}`;
-            } else {
-              return `You Lose! ${computerSelection} beats ${playerSelection}`;
-            }
-            break;
-
-          case "Scissors":
-            if (computerSelection === "Paper") {
-              return `You Win! ${playerSelection} beats ${computerSelection}`;
-            } else {
-              return `You Lose! ${computerSelection} beats ${playerSelection}`;
-            }
-            break;
-
-          default:
-            return `Your input '${playerSelection}' is not a option, write 'rock', 'paper' or 'scissors'`;
-            break;
+        if (
+          (playerSelection === 'Rock' && computerSelection === 'Scissors') ||
+          (playerSelection === 'Paper' && computerSelection === 'Rock') ||
+          (playerSelection === 'Scissors' && computerSelection === 'Paper')
+        ) {
+          roundResult = `You Win! ${playerSelection} beats ${computerSelection}`;
+        } else {
+          roundResult = `You Lose! ${computerSelection} beats ${playerSelection}`;
         }
+
+        return roundResult;
       }
     }
 
     function getComputerChoice() {
-          let randomNumber = Math.floor(Math.random() * 3); //Return [0,1,2]
-          if (randomNumber === 0) {
-            return "Rock";
-          } else if (randomNumber === 1) {
-            return "Paper";
-          } else {
-            return "Scissors";
-          }
-        }
+      const choices = ['Rock', 'Paper', 'Scissors'];
+      const randomIndex = Math.floor(Math.random() * choices.length);
+      return choices[randomIndex];
+    }
 
-        function updateGameResults(gameResultsList, roundNumber, playerSelection, computerSelection, roundResult) {
-          // Create new list item for the current round result
-          const listItem = document.createElement("li");
-          listItem.innerText = `Round(${roundNumber}): ${playerSelection} vs ${computerSelection} : ${roundResult}`;
+    function updateGameResults(gameResultsList, playerSelection, computerSelection, roundResult) {
+      const listItem = document.createElement("li");
+      listItem.innerText = `${playerSelection} vs ${computerSelection} : ${roundResult}`;
+      gameResultsList.appendChild(listItem);
+    }
 
-          // Add the new list item to the game results list
-          gameResultsList.appendChild(listItem);
-}
+    function endGame() {
+      buttons.forEach(button => {
+        button.removeEventListener('click', playRound);
+      });
+
+      let finalResult = '';
+
+      if (playerScore > computerScore) {
+        finalResult = `You won the game! Final score: You (${playerScore}) - Computer (${computerScore})`;
+      } else {
+        finalResult = `You lost the game! Final score: You (${playerScore}) - Computer (${computerScore})`;
+      }
+
+      finalResultPara.innerText = finalResult;
+    }
+
+    // Start the game
+    game();
   </script>
 </html>
